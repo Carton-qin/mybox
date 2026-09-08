@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyBox 一键 SSH 命令生成器 & 智能 CDN 测速</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #121831;
+      --ink: #e9edf7;
+      --sub: #b7c1d9;
+      --line: #263255;
+      --acc: #4f7cff;
+      --acc-hover: #3b66e6;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --input-bg: #0d1430;
+      --button-bg-dark: #1a2346;
+      --button-bg-light: #121a39;
+      --body-bg: linear-gradient(180deg, var(--bg) 0%, #0e1530 100%);
+      --modal-bg: rgba(11, 16, 32, 0.95);
+    }
+    .light-mode {
+      --bg: #f4f6fc;
+      --card: #ffffff;
+      --ink: #1a202c;
+      --sub: #4a5568;
+      --line: #e2e8f0;
+      --acc: #3b66e6;
+      --acc-hover: #2952d1;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --err: #dc2626;
+      --input-bg: #f8fafc;
+      --button-bg-dark: #e2e8f0;
+      --button-bg-light: #f0f4f9;
+      --body-bg: var(--bg);
+      --modal-bg: rgba(255, 255, 255, 0.98);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--body-bg);
+      color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .wrap {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    header {
+      position: relative;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 32px;
+      margin: 0 0 10px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--sub);
+      line-height: 1.8;
+      max-width: 600px;
+    }
+    a {
+      color: var(--acc);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .light-mode .card {
+      background: var(--card);
+      border-color: var(--line);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: var(--ink);
+    }
+    .protocol-group {
+      margin-bottom: 16px;
+    }
+    .protocol-group.separator {
+      border-bottom: 1px dashed var(--line);
+      padding-bottom: 16px;
+    }
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px 14px;
+      align-items: center;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 14px;
+      align-items: center;
+      margin: 10px 0;
+    }
+    @media (max-width: 640px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--ink);
+      outline: none;
+      font-size: 14px;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    input[type="text"]:focus, select:focus {
+      border-color: var(--acc);
+    }
+    input[disabled], select[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--sub);
+      font-family: monospace;
+    }
+    .btn {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--button-bg-dark);
+      color: var(--ink);
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:hover {
+      background: var(--line);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #4f7cff, #385fdf);
+      border-color: #476de2;
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #3b66e6, #2a4ecb);
+    }
+    .btn.accent {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: #d97706;
+      color: #fff;
+    }
+    .input-with-button {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .full-col {
+      grid-column: 1 / -1;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: #090e1f;
+      color: #93c5fd;
+      border: 1px solid #28396b;
+      border-radius: 12px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      resize: vertical;
+    }
+    .light-mode textarea {
+      background: #f8fafc;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .shortcut-commands {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .shortcut-commands .btn {
+      padding: 6px 11px;
+      font-size: 13px;
+    }
+    .theme-switch {
+      position: absolute;
+      top: 0;
+      right: 0;
+      cursor: pointer;
+    }
+    .theme-switch-icon {
+      width: 22px;
+      height: 22px;
+      color: var(--ink);
+    }
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-backdrop.active {
+      display: flex;
+    }
+    .modal-dialog {
+      background: var(--modal-bg);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--sub);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .speedtest-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .speedtest-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      transition: border-color 0.2s;
+    }
+    .speedtest-item:hover {
+      border-color: var(--acc);
+    }
+    .speedtest-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .speedtest-name {
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .speedtest-host {
+      font-size: 12px;
+      color: var(--sub);
+      font-family: monospace;
+    }
+    .speedtest-result {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-latency {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #1e293b;
+      color: var(--sub);
+    }
+    .badge-latency.fast {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+    .badge-latency.medium {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+    .badge-latency.slow {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+    .badge-isp {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .badge-ct { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .badge-cu { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .badge-cm { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .badge-all { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="theme-switch" id="themeBtn" title="切换深色/浅色模式">
+        <svg class="theme-switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </div>
+      <h1>MyBox 一键 SSH 命令生成器 & 智能 CDN 测速</h1>
+      <p>
+        现代化全协议自建体系 · 原生抗封锁 · 双内核集成 · 智能 Cloudflare 优选 DNS<br>
+        <span style="font-size: 13px; color: var(--sub);">
+          默认优选域名：<strong style="color: var(--acc);">best.66688800.xyz</strong> | 
+          <a href="https://github.com/your-username/my-box" target="_blank" id="repoLink">GitHub 仓库</a> | 
+          <a href="./DEPLOY.md" target="_blank">部署指引</a>
+        </span>
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- 协议与端口配置 -->
+      <section class="card">
+        <h2>📦 核心协议与端口选择</h2>
+        
+        <div class="protocol-group separator">
+          <h3>Xray 核心现代协议：</h3>
+          <div class="protocol-grid">
+            <label><input type="checkbox" data-proto="vlpt" checked> Vless-tcp-reality-vision <span class="pill">vlpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="vlpt">
+
+            <label><input type="checkbox" data-proto="xhpt"> Vless-xhttp-reality-enc <span class="pill">xhpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="xhpt">
+
+            <label><input type="checkbox" data-proto="vxpt"> Vless-xhttp-enc <span class="pill">vxpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="vxpt">
+
+            <label><input type="checkbox" data-proto="vwpt"> Vless-ws-enc (Argo/CDN) <span class="pill">vwpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="vwpt">
+
+            <label><input type="checkbox" data-proto="xupt"> Vless-xhttp-tls-UDP <span class="pill">xupt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="xupt">
+
+            <label><input type="checkbox" data-proto="xcpt"> Vless-xhttp-tls-TCP/UDP <span class="pill">xcpt</span></label>
+            <input type="text" placeholder="留空则随机端口 (需域名证书)" data-port="xcpt">
+          </div>
+        </div>
+
+        <div class="protocol-group separator">
+          <h3>Singbox 核心极速协议：</h3>
+          <div class="protocol-grid">
+            <label><input type="checkbox" data-proto="hypt"> Hysteria2 (端口跳跃) <span class="pill">hypt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="hypt">
+
+            <label><input type="checkbox" data-proto="tupt"> Tuic (QUIC) <span class="pill">tupt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="tupt">
+
+            <label><input type="checkbox" data-proto="anpt"> AnyTLS <span class="pill">anpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="anpt">
+
+            <label><input type="checkbox" data-proto="arpt"> Any-reality <span class="pill">arpt</span></label>
+            <input type="text" placeholder="留空则随机端口" data-port="arpt">
+          </div>
+        </div>
+      </section>
+
+      <!-- 全局配置调整 -->
+      <section class="card">
+        <h2>⚙️ 全局配置与优选网络</h2>
+        
+        <div class="row">
+          <label>UUID 认证密码 <span class="pill">uuid</span></label>
+          <div class="input-with-button">
+            <input id="uuid" type="text" placeholder="留空则自动生成随机 UUID"/>
+            <button id="generateUuidBtn" type="button" class="btn primary">生成 UUID</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>CDN 优选 IP/域名 <span class="pill">cfip</span></label>
+          <div class="input-with-button">
+            <input id="cfip" type="text" value="best.66688800.xyz" placeholder="默认 best.66688800.xyz"/>
+            <button id="openSpeedtestBtn" type="button" class="btn accent" title="点击测速挑选延迟最低节点">⚡ 智能测速优选</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Reality 目标域名 <span class="pill">reym</span></label>
+          <input id="reym" type="text" placeholder="默认 apple.com (勾选Reality可用)"/>
+        </div>
+
+        <div class="row">
+          <label>开启域名/IP证书 TLS <span class="pill">alns</span></label>
+          <select id="alns">
+            <option value="">默认 关闭 (自签证书 TLS)</option>
+            <option value="y">开启 (使用真实域名 IP 证书)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>HY2 端口跳跃范围 <span class="pill">hyjpt</span></label>
+          <input id="hyjpt" type="text" placeholder="支持多范围混用，例：20000:30000 443" disabled/>
+        </div>
+
+        <div class="row">
+          <label>CF 解析回源域名 <span class="pill">cdnym</span></label>
+          <input id="cdnym" type="text" placeholder="启用 Vless-ws/xhttp 回源 CDN 时可用" disabled/>
+        </div>
+
+        <div class="row">
+          <label>套 WARP-IP 出站 <span class="pill">warp</span></label>
+          <select id="warp">
+            <option value="">默认 服务器本地 IP 直连出站</option>
+            <option value="s">1、Singbox 套 WARP 双栈 IPv4+IPv6</option>
+            <option value="s4">2、Singbox 套 WARP IPv4</option>
+            <option value="s6">3、Singbox 套 WARP IPv6</option>
+            <option value="x">4、Xray 套 WARP 双栈 IPv4+IPv6</option>
+            <option value="x4">5、Xray 套 WARP IPv4</option>
+            <option value="x6">6、Xray 套 WARP IPv6</option>
+            <option value="sx">7、Singbox + Xray 共同套 WARP IPv4+IPv6</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>IPv4 / IPv6 导出 <span class="pill">ippz</span></label>
+          <select id="ippz">
+            <option value="">默认 自动探测</option>
+            <option value="4">导出 IPv4</option>
+            <option value="6">导出 IPv6</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>开放系统所有端口 <span class="pill">oap</span></label>
+          <select id="oap">
+            <option value="">默认 关闭</option>
+            <option value="y">开启 (自动配置防火墙放行)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>导出节点前缀 <span class="pill">name</span></label>
+          <input id="name" type="text" placeholder="留空默认以协议名命名"/>
+        </div>
+      </section>
+
+      <!-- 订阅与隧道配置 -->
+      <section class="card">
+        <h2>🔗 聚合订阅设置</h2>
+        <div class="row">
+          <label>启用订阅链接 <span class="pill">sub</span></label>
+          <select id="sub">
+            <option value="">默认 关闭 (仅显示单节点分享链接)</option>
+            <option value="y">开启 (生成 Clash/Sing-box 聚合订阅)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>订阅访问密码 <span class="pill">subid</span></label>
+          <input id="subid" type="text" placeholder="留空则使用默认 UUID 密码" disabled/>
+        </div>
+        <div class="row">
+          <label>订阅服务端口 <span class="pill">subpt</span></label>
+          <input id="subpt" type="text" placeholder="留空则使用随机端口" disabled/>
+        </div>
+      </section>
+
+      <!-- Argo 隧道设置 -->
+      <section class="card">
+        <h2>🚇 Cloudflare Argo 隧道设置</h2>
+        <div class="row">
+          <label>启用 Argo 隧道 <span class="pill">argo</span></label>
+          <select id="argoSelect">
+            <option value="">默认 关闭</option>
+            <option value="vwpt">启用 Vless-ws-enc 的 Argo 隧道</option>
+            <option value="vxpt">启用 Vless-xhttp-enc 的 Argo 隧道</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>固定隧道 CF 域名 <span class="pill">agn</span></label>
+          <input id="agn" type="text" placeholder="Zero Trust 设置的子域名，留空为临时隧道" disabled/>
+        </div>
+        <div class="row">
+          <label>固定隧道 Token <span class="pill">agk</span></label>
+          <input id="agk" type="text" placeholder="Zero Trust 提取的 ey 开头 Token，留空为临时隧道" disabled/>
+        </div>
+      </section>
+
+      <!-- 快捷运维命令 -->
+      <section class="card full-col">
+        <h2>🛠️ 脚本快捷维护方式</h2>
+        <div class="shortcut-commands">
+          <button class="btn" data-command="list">📋 显示节点：list</button>
+          <button class="btn" data-command="del">🗑️ 卸载脚本：del</button>
+          <button class="btn" data-command="upx">⬆️ 升级 Xray 内核：upx</button>
+          <button class="btn" data-command="ups">⬆️ 升级 Singbox 内核：ups</button>
+          <button class="btn" data-command="res">🔄 重启核心服务：res</button>
+          <button class="btn" data-command="rep">⚙️ 重新应用配置：rep</button>
+        </div>
+      </section>
+
+      <!-- 输出区域 -->
+      <section class="card full-col">
+        <h2>💻 生成的一键 SSH 命令（复制并在 Linux 服务器执行）</h2>
+        <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 12px; font-size: 14px;">
+          <div>
+            <label style="display: inline-flex; margin-right: 15px;">
+              <input type="radio" name="commandType" value="curl" checked> curl
+            </label>
+            <label style="display: inline-flex;">
+              <input type="radio" name="commandType" value="wget"> wget
+            </label>
+          </div>
+          <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+            <span style="white-space: nowrap; color: var(--sub);">GitHub 用户名/脚本源:</span>
+            <input id="repoUser" type="text" value="your-username" style="max-width: 180px; padding: 4px 8px; font-size: 13px;" title="请填入你存放 install.sh 的 GitHub 用户名">
+          </div>
+        </div>
+
+        <textarea id="output" spellcheck="false"></textarea>
+
+        <div class="actions">
+          <button id="copyBtn" class="btn primary">📋 复制命令</button>
+          <button id="resetBtn" class="btn">🔄 重置配置</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 多线路智能测速弹窗 -->
+  <div class="modal-backdrop" id="speedtestModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>⚡ Cloudflare 多线路智能延迟测速</h3>
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--sub); margin: 0 0 12px;">
+        探测当前浏览器与各优质 CDN 节点的往返延迟（RTT）。点击任意一行可一键设置为节点的优选地址。
+      </p>
+
+      <div class="speedtest-list" id="speedtestList">
+        <!-- 节点列表动态生成 -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <button id="retestBtn" class="btn primary" style="font-size: 13px;">🚀 重新测速</button>
+        <span id="testStatus" style="font-size: 12px; color: var(--sub);">测速就绪</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    // 基础参数键值
+    const protoKeys = ['vlpt', 'xhpt', 'vxpt', 'vwpt', 'xupt', 'xcpt', 'hypt', 'tupt', 'anpt', 'arpt'];
+    const optIds = ['uuid', 'cfip', 'reym', 'alns', 'hyjpt', 'cdnym', 'warp', 'ippz', 'oap', 'name', 'sub', 'subid', 'subpt'];
+
+    // DOM 引用
+    const output = document.getElementById('output');
+    const repoUser = document.getElementById('repoUser');
+    const argoSelect = document.getElementById('argoSelect');
+    const agn = document.getElementById('agn');
+    const agk = document.getElementById('agk');
+    const cfip = document.getElementById('cfip');
+    const reym = document.getElementById('reym');
+    const alns = document.getElementById('alns');
+    const hyjpt = document.getElementById('hyjpt');
+    const cdnym = document.getElementById('cdnym');
+    const sub = document.getElementById('sub');
+    const subid = document.getElementById('subid');
+    const subpt = document.getElementById('subpt');
+    const themeBtn = document.getElementById('themeBtn');
+
+    // 优选测速节点库
+    const candidateNodes = [
+      { name: 'MyBox 自有主优选', host: 'best.66688800.xyz', isp: 'all', ispName: '全网推荐' },
+      { name: 'CF 官方优选 A', host: 'cf.090227.xyz', isp: 'ct', ispName: '电信优选' },
+      { name: 'CF 动态优选 B', host: 'cloudflare.182682.xyz', isp: 'cu', ispName: '联通优选' },
+      { name: 'CF 亚太直连 C', host: 'cf.001987.xyz', isp: 'cm', ispName: '移动优选' },
+      { name: 'Visa 亚太公共节点', host: 'www.visa.com.sg', isp: 'all', ispName: '亚太直连' },
+      { name: 'Cloudflare Anycast', host: 'cloudflare.com', isp: 'all', ispName: '官方默认' }
+    ];
+
+    let isUpdatingFromOutput = false;
+
+    // 获取脚本 URL
+    function getScriptUrl(tool) {
+      const user = (repoUser.value || 'your-username').trim();
+      const raw = `https://raw.githubusercontent.com/${user}/my-box/main/install.sh`;
+      return tool === 'curl' ? `bash <(curl -Ls ${raw})` : `bash <(wget -qO- ${raw})`;
+    }
+
+    // 收集表单变量
+    function collectVars() {
+      const m = {};
+      protoKeys.forEach(k => {
+        const ck = document.querySelector(`[data-proto="${k}"]`);
+        const pt = document.querySelector(`[data-port="${k}"]`);
+        if (ck && ck.checked) {
+          m[k] = (pt && pt.value ? pt.value.trim() : '');
+        }
+      });
+      optIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.disabled) {
+          const v = el.value.trim();
+          if (v !== '') m[id] = v;
+        }
+      });
+      const argoVal = argoSelect.value;
+      if (argoVal) {
+        m['argo'] = argoVal;
+        if (!agn.disabled && agn.value.trim()) m['agn'] = agn.value.trim();
+        if (!agk.disabled && agk.value.trim()) m['agk'] = agk.value.trim();
+      }
+      return m;
+    }
+
+    function toBashVars(m) {
+      const keys = Object.keys(m);
+      const ordered = [];
+      protoKeys.forEach(k => { if (keys.includes(k)) ordered.push(k); });
+      ['uuid', 'cfip', 'reym', 'alns', 'hyjpt', 'cdnym', 'warp', 'ippz', 'name', 'sub', 'subid', 'subpt'].forEach(k => {
+        if (keys.includes(k)) ordered.push(k);
+      });
+      ['argo', 'agn', 'agk', 'oap'].forEach(k => { if (keys.includes(k)) ordered.push(k); });
+      keys.forEach(k => { if (!ordered.includes(k)) ordered.push(k); });
+
+      return ordered.map(k => {
+        const val = m[k];
+        if (val === '') return `${k}=""`;
+        if (/[^\w\-\.:/]/.test(val)) return `${k}="${val.replace(/"/g, '\\"')}"`;
+        return `${k}="${val}"`;
+      }).join(' ');
+    }
+
+    // 渲染输出命令
+    function render() {
+      if (isUpdatingFromOutput) return;
+      const m = collectVars();
+      const vars = toBashVars(m);
+      const tool = document.querySelector('input[name="commandType"]:checked').value;
+      output.value = (vars ? vars + ' ' : '') + getScriptUrl(tool);
+    }
+
+    // 表单联动控制
+    function updateDynamicInputs() {
+      const vlessWs = document.querySelector('[data-proto="vwpt"]')?.checked;
+      const vlessXh = document.querySelector('[data-proto="vxpt"]')?.checked;
+      const isReality = document.querySelector('[data-proto="vlpt"]')?.checked || document.querySelector('[data-proto="xhpt"]')?.checked || document.querySelector('[data-proto="arpt"]')?.checked;
+      const isHy2 = document.querySelector('[data-proto="hypt"]')?.checked;
+
+      reym.disabled = !isReality;
+      if (!isReality) reym.value = '';
+
+      cdnym.disabled = !(vlessWs || vlessXh);
+      if (!cdnym.disabled && !cdnym.value) cdnym.placeholder = '启用回源 CDN 时填写你的域名';
+
+      hyjpt.disabled = !isHy2;
+      if (!isHy2) hyjpt.value = '';
+
+      const isSub = sub.value === 'y';
+      subid.disabled = !isSub;
+      subpt.disabled = !isSub;
+
+      const isArgo = argoSelect.value !== '';
+      agn.disabled = !isArgo;
+      agk.disabled = !isArgo;
+
+      render();
+    }
+
+    // 反向解析已有命令
+    function parseAndFillOutput() {
+      const text = output.value.trim();
+      if (!text) return;
+      isUpdatingFromOutput = true;
+
+      if (text.includes('wget')) {
+        document.querySelector('input[name="commandType"][value="wget"]').checked = true;
+      } else {
+        document.querySelector('input[name="commandType"][value="curl"]').checked = true;
+      }
+
+      const regex = /(\w+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"']+))/g;
+      const params = {};
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        params[match[1]] = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : match[4]);
+      }
+
+      protoKeys.forEach(k => {
+        const ck = document.querySelector(`[data-proto="${k}"]`);
+        const pt = document.querySelector(`[data-port="${k}"]`);
+        if (k in params) {
+          if (ck) ck.checked = true;
+          if (pt) pt.value = params[k];
+        } else {
+          if (ck) ck.checked = false;
+          if (pt) pt.value = '';
+        }
+      });
+
+      optIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = id in params ? params[id] : '';
+      });
+
+      if ('argo' in params) {
+        argoSelect.value = params['argo'];
+        if ('agn' in params) agn.value = params['agn'];
+        if ('agk' in params) agk.value = params['agk'];
+      } else {
+        argoSelect.value = '';
+      }
+
+      isUpdatingFromOutput = false;
+      updateDynamicInputs();
+    }
+
+    // 测速核心逻辑
+    async function testLatency(host) {
+      const start = performance.now();
+      try {
+        await fetch(`https://${host}/cdn-cgi/trace?t=${Date.now()}`, {
+          mode: 'no-cors',
+          cache: 'no-store'
+        });
+        return Math.round(performance.now() - start);
+      } catch (err) {
+        return 9999;
+      }
+    }
+
+    async function runSpeedTest() {
+      const listEl = document.getElementById('speedtestList');
+      const statusEl = document.getElementById('testStatus');
+      listEl.innerHTML = '';
+      statusEl.textContent = '正在并发探测延迟...';
+
+      // 渲染占位
+      candidateNodes.forEach((node, idx) => {
+        const div = document.createElement('div');
+        div.className = 'speedtest-item';
+        div.id = `node-${idx}`;
+        div.innerHTML = `
+          <div class="speedtest-info">
+            <div class="speedtest-name">
+              ${node.name}
+              <span class="badge-isp badge-${node.isp}">${node.ispName}</span>
+            </div>
+            <div class="speedtest-host">${node.host}</div>
+          </div>
+          <div class="speedtest-result">
+            <span class="badge-latency" id="lat-${idx}">测速中...</span>
+            <button class="btn" style="padding: 4px 10px; font-size: 12px;" disabled id="btn-${idx}">选用</button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+
+      // 并发测速
+      const promises = candidateNodes.map(async (node, idx) => {
+        const ping = await testLatency(node.host);
+        const badge = document.getElementById(`lat-${idx}`);
+        const btn = document.getElementById(`btn-${idx}`);
+        if (!badge) return;
+
+        if (ping < 9999) {
+          badge.textContent = `${ping} ms`;
+          badge.className = `badge-latency ${ping < 160 ? 'fast' : (ping < 300 ? 'medium' : 'slow')}`;
+          btn.disabled = false;
+          btn.onclick = () => {
+            cfip.value = node.host;
+            document.getElementById('speedtestModal').classList.remove('active');
+            showToast(`已选定优选节点：${node.host} (${ping}ms)`);
+            render();
+          };
+        } else {
+          badge.textContent = '超时';
+          badge.className = 'badge-latency slow';
+        }
+      });
+
+      await Promise.all(promises);
+      statusEl.textContent = '测速完成，点击【选用】即可应用';
+    }
+
+    // 事件绑定
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', updateDynamicInputs);
+      el.addEventListener('change', updateDynamicInputs);
+    });
+
+    output.addEventListener('input', parseAndFillOutput);
+
+    document.getElementById('generateUuidBtn').addEventListener('click', () => {
+      document.getElementById('uuid').value = crypto.randomUUID();
+      render();
+      showToast('已生成全新 UUID');
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      output.select();
+      try {
+        await navigator.clipboard.writeText(output.value);
+        showToast('已成功复制命令到剪贴板！');
+      } catch(e) {
+        document.execCommand('copy');
+        showToast('已复制！');
+      }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      document.querySelectorAll('input[type="checkbox"]').forEach(ck => ck.checked = false);
+      document.querySelector('[data-proto="vlpt"]').checked = true;
+      document.querySelectorAll('input[type="text"]').forEach(inp => inp.value = '');
+      cfip.value = 'best.66688800.xyz';
+      argoSelect.value = '';
+      sub.value = '';
+      updateDynamicInputs();
+      showToast('配置已重置为默认');
+    });
+
+    // 快捷命令按钮
+    document.querySelectorAll('.shortcut-commands .btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-command');
+        const tool = document.querySelector('input[name="commandType"]:checked').value;
+        const base = getScriptUrl(tool);
+        if (cmd === 'rep') {
+          const vars = toBashVars(collectVars());
+          output.value = (vars ? vars + ' ' : '') + base + ' rep';
+        } else {
+          output.value = `${base} ${cmd}`;
+        }
+        showToast(`已生成 ${cmd} 命令`);
+      });
+    });
+
+    // 模态弹窗控制
+    const modal = document.getElementById('speedtestModal');
+    document.getElementById('openSpeedtestBtn').addEventListener('click', () => {
+      modal.classList.add('active');
+      runSpeedTest();
+    });
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      modal.classList.remove('active');
+    });
+    document.getElementById('retestBtn').addEventListener('click', runSpeedTest);
+
+    // 主题切换
+    themeBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('mybox_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('mybox_theme') === 'light') {
+      document.body.classList.add('light-mode');
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    }
+
+    // 初始化
+    updateDynamicInputs();
+  })();
+  </script>
+</body>
+</html>

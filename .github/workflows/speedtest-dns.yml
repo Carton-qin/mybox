@@ -1,0 +1,29 @@
+name: Cloudflare DNS 智能测速与自动更新
+
+on:
+  schedule:
+    # 每 6 小时自动运行一次 (UTC 00:00, 06:00, 12:00, 18:00)
+    - cron: '0 */6 * * *'
+  # 支持在 GitHub Actions 网页上手动点击立即运行
+  workflow_dispatch:
+
+jobs:
+  update-cf-dns:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python 运行环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 执行测速并同步 Cloudflare DNS
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_SUBDOMAIN: "best.66688800.xyz"
+        run: |
+          chmod +x scripts/update_cf_dns.py
+          python3 scripts/update_cf_dns.py
