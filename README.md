@@ -48,7 +48,7 @@ my-box/
 
 ```bash
 # 示例：启用 Reality Vision 与 Hysteria2，使用默认优选域名
-vlpt="" hypt="" bash <(curl -Ls https://raw.githubusercontent.com/<你的用户名>/my-box/main/install.sh)
+vlpt="" hypt="" bash <(curl -Ls https://raw.githubusercontent.com/Carton-qin/mybox/main/install.sh)
 ```
 
 ### 3. 服务器快捷运维命令

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #=============================================================================
 # MyBox: 现代化多协议代理 & Cloudflare 智能优选节点一键管理脚本
-# 项目主页: https://github.com/your-username/my-box
+# 项目主页: https://github.com/Carton-qin/mybox
 # 默认优选: best.66688800.xyz
 #=============================================================================
 
@@ -533,9 +533,9 @@ show_list() {
 
     echo -e "${GREEN}======================================================${PLAIN}"
     echo -e "  快捷管理方式："
-    echo -e "  - 查看节点信息: ${YELLOW}bash <(curl -Ls https://raw.githubusercontent.com/your-username/my-box/main/install.sh) list${PLAIN}"
+    echo -e "  - 查看节点信息: ${YELLOW}bash <(curl -Ls https://raw.githubusercontent.com/Carton-qin/mybox/main/install.sh) list${PLAIN}"
     echo -e "  - 重启所有服务: ${YELLOW}systemctl restart mybox-xray mybox-singbox${PLAIN}"
-    echo -e "  - 彻底卸载脚本: ${YELLOW}bash <(curl -Ls https://raw.githubusercontent.com/your-username/my-box/main/install.sh) del${PLAIN}"
+    echo -e "  - 彻底卸载脚本: ${YELLOW}bash <(curl -Ls https://raw.githubusercontent.com/Carton-qin/mybox/main/install.sh) del${PLAIN}"
     echo -e "${GREEN}======================================================${PLAIN}"
 }
 

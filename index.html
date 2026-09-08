@@ -394,7 +394,7 @@
         现代化全协议自建体系 · 原生抗封锁 · 双内核集成 · 智能 Cloudflare 优选 DNS<br>
         <span style="font-size: 13px; color: var(--sub);">
           默认优选域名：<strong style="color: var(--acc);">best.66688800.xyz</strong> | 
-          <a href="https://github.com/your-username/my-box" target="_blank" id="repoLink">GitHub 仓库</a> | 
+          <a href="https://github.com/Carton-qin/mybox" target="_blank" id="repoLink">GitHub 仓库</a> | 
           <a href="./DEPLOY.md" target="_blank">部署指引</a>
         </span>
       </p>
@@ -594,7 +594,7 @@
           </div>
           <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
             <span style="white-space: nowrap; color: var(--sub);">GitHub 用户名/脚本源:</span>
-            <input id="repoUser" type="text" value="your-username" style="max-width: 180px; padding: 4px 8px; font-size: 13px;" title="请填入你存放 install.sh 的 GitHub 用户名">
+            <input id="repoUser" type="text" value="Carton-qin" style="max-width: 180px; padding: 4px 8px; font-size: 13px;" title="请填入你存放 install.sh 的 GitHub 用户名">
           </div>
         </div>
 
@@ -666,8 +666,8 @@
 
     // 获取脚本 URL
     function getScriptUrl(tool) {
-      const user = (repoUser.value || 'your-username').trim();
-      const raw = `https://raw.githubusercontent.com/${user}/my-box/main/install.sh`;
+      const user = (repoUser.value || 'Carton-qin').trim();
+      const raw = `https://raw.githubusercontent.com/${user}/mybox/main/install.sh`;
       return tool === 'curl' ? `bash <(curl -Ls ${raw})` : `bash <(wget -qO- ${raw})`;
     }
 

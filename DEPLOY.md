@@ -15,7 +15,7 @@ git init
 git add .
 git commit -m "feat: init MyBox system with auto-speedtest DNS"
 git branch -M main
-git remote add origin https://github.com/<你的GitHub用户名>/my-box.git
+git remote add origin https://github.com/Carton-qin/mybox.git
 git push -u origin main
 ```
 
