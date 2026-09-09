@@ -101,9 +101,3 @@ my-box/
     └── workflows/
         └── speedtest-dns.yml   # GitHub Actions 每 6 小时定时调度工作流
 ```
-
----
-
-## 🤝 鸣谢与声明
-本项目仅供个人网络技术研究与合法管理自有服务器使用。
-感谢开源生态中的 [Xray-core](https://github.com/XTLS/Xray-core)、[Sing-box](https://github.com/SagerNet/sing-box) 与 [Cloudflared](https://github.com/cloudflare/cloudflared) 团队。
